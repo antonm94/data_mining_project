@@ -33,21 +33,22 @@ def mapper(key, value):
 
 def reducer(key, values):
     # key: key from mapper used to aggregate
-    # values: list of all value for that keyt
+    # 	-> in this case: key[i] = hashvalue+" "+bandIndex
+    # values: all values for that key
+    # 	-> in this case: value[i] = full line of document
     if len(values)>1:
-        for doc1 in range(len(values)):
-            value1 = values[doc1].split()
-            doc1_id = int(value1[0][-4:])
-            doc1set = set(map(int, value1[1:]))
-
+        for doc1 in range(0,len(values)):
+	    #extract doc id and the shingle set for doc1 and doc2
+            docvalue1splitted = values[doc1].split()
+            doc1_id = int(docvalue1splitted[0][-4:])
+            doc1set = set(map(int, docvalue1splitted[1:]))
             for doc2 in range(doc1+1,len(values)):
-                value2 = values[doc2].split()
-                doc2_id = int(value2[0][-4:])
-                doc2set = set(map(int, value2[1:]))
-                intersect = doc1set.intersection(doc2set)
+                docvalue2splitted = values[doc2].split()
+                doc2_id = int(docvalue2splitted[0][-4:])
+                doc2set = set(map(int, docvalue2splitted[1:]))
+                intersection = doc1set.intersection(doc2set)
                 union = doc1set.union(doc2set)
-                jaccardi = (1.0*len(intersect))/(1.0*len(union))
-                if jaccardi>0.85:
+                if len(intersection)>.85*len(union):
                     yield min(doc1_id, doc2_id), max(doc1_id, doc2_id)
 
 
