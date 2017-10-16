@@ -3,14 +3,14 @@ import sys
 from random import randrange 
 
 
-b = 4
+b = 16
 r = 4
 n_hash1 = b*r
 h1 = np.empty((n_hash1, 2))
+np.random.seed(seed=0)
 for i in range(n_hash1):
     h1[i, 0] = int(np.random.randint(1, 8193))
     h1[i, 1] = int(np.random.randint(0, 8193))
-
 
 
 def mapper(key, value):
@@ -63,17 +63,25 @@ def reducer(key, values):
             for doc2 in range(doc1+1,len(values)):
                 value2 = values[doc2].split()
                 doc2_id = int(value2[0][-4:])
-                doc2set = set(map(int, value2[2:]))
+                doc2set = set(map(int, value2[1:]))
                 #print(values[doc1])
                 intersect = doc1set.intersection(doc2set)
                 union = doc1set.union(doc2set)
                 if(len(intersect)>0.85*len(union)):
+                    print(doc1_id)
+                    print(doc2_id)
                     yield doc1_id, doc2_id
-                else:
-                    print(doc1set)
-                    print(doc2set)
-                    print("not yielding")
-                    print(len(intersect)/len(union))
+                    if((int(doc1_id)==219 or int(doc2_id)==219)and(int(doc1_id)==144 or int(doc2_id)==144)): 
+                        print(doc1_id)
+                        print(doc1set)
+                        print(doc2_id)
+                        print(doc2set)
+                        print("intersect")
+                        print(intersect)
+                        print("union")
+                        print(union)
+                        print(1.0*len(intersect)/1.0*len(union))
+
 
 
 
