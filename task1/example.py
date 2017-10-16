@@ -1,42 +1,34 @@
 import numpy as np
-import sys
-from random import randrange 
-
 
 r = 16
 b = 64
+number_of_hash = b*r
 
-n_hash1 = b*r
-h1 = np.empty((n_hash1, 2))
+m = np.empty((number_of_hash, 2))
 np.random.seed(seed=0)
-for i in range(n_hash1):
-    h1[i, 0] = int(np.random.randint(1, 8193))
-    h1[i, 1] = int(np.random.randint(0, 8193))
+for i in range(number_of_hash):
+    m[i, 0] = int(np.random.randint(1, 8193))
+    m[i, 1] = int(np.random.randint(0, 8193))
 
 
 def mapper(key, value):
-    global h1
-    global b
-    global r
+    global m
     # key: None
     # value: one line of input file
-    fullValue = value
+    values = value
     value = value.split()
-    doc_id = int(value[0][-4:])
     value = value[1:]
-    
-    n_hash1 = h1.shape[0]
-    H1 = np.ones(n_hash1) * np.inf
-    for i in range(n_hash1):
+
+    m = np.ones(number_of_hash) * np.inf
+    for i in range(number_of_hash):
         for num in value:
-            H1[i] = int(min(H1[i], ((h1[i, 0] * int(num) + h1[i, 1])) % 8193))
+            m[i] = int(min(m[i], (m[i, 0] * int(num) + m[i, 1]) % 8193))
 
-    H1 = H1.reshape((b, r))
-
-    H2 = H1.sum(axis=1).astype(int)
-    for i in range(H2.shape[0]):
-        key_1 = str(H2[i])+' '+str(i)
-        yield key_1, fullValue
+    m = m.reshape((b, r))
+    m = m.sum(axis=1).astype(int)
+    for i in range(m.shape[0]):
+        key1 = str(m[i])+' '+str(i)
+        yield key1, values
 
 
 def reducer(key, values):
