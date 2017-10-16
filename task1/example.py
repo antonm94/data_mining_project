@@ -3,13 +3,9 @@ import sys
 from random import randrange 
 
 
-<<<<<<< HEAD
 r = 16
 b = 64
-=======
-b = 16
-r = 4
->>>>>>> 26c155b9801e41a5aed01f48d48b5cc9521abd17
+
 n_hash1 = b*r
 h1 = np.empty((n_hash1, 2))
 np.random.seed(seed=0)
