@@ -171,6 +171,8 @@ def evaluate(reported_duplicates, true_duplicates):
         if pair in true_duplicates:
             tp += 1
         else:
+	    print("false positive:")
+            print(pair)
             fp += 1
 
     # Count false negatives.

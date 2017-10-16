@@ -3,14 +3,19 @@ import sys
 from random import randrange 
 
 
+<<<<<<< HEAD
 r = 16
 b = 64
+=======
+b = 16
+r = 4
+>>>>>>> 26c155b9801e41a5aed01f48d48b5cc9521abd17
 n_hash1 = b*r
 h1 = np.empty((n_hash1, 2))
+np.random.seed(seed=0)
 for i in range(n_hash1):
     h1[i, 0] = int(np.random.randint(1, 8193))
     h1[i, 1] = int(np.random.randint(0, 8193))
-
 
 
 def mapper(key, value):
@@ -51,11 +56,31 @@ def reducer(key, values):
                 value2 = values[doc2].split()
                 doc2_id = int(value2[0][-4:])
                 doc2set = set(map(int, value2[1:]))
+<<<<<<< HEAD
                 intersect = doc1set.intersection(doc2set)
                 union = doc1set.union(doc2set)
                 jaccardi = (1.0*len(intersect))/(1.0*len(union))
                 if jaccardi>0.85:
                     yield min(doc1_id, doc2_id), max(doc1_id, doc2_id)
+=======
+                #print(values[doc1])
+                intersect = doc1set.intersection(doc2set)
+                union = doc1set.union(doc2set)
+                if(len(intersect)>0.85*len(union)):
+                    print(doc1_id)
+                    print(doc2_id)
+                    yield doc1_id, doc2_id
+                    if((int(doc1_id)==219 or int(doc2_id)==219)and(int(doc1_id)==144 or int(doc2_id)==144)): 
+                        print(doc1_id)
+                        print(doc1set)
+                        print(doc2_id)
+                        print(doc2set)
+                        print("intersect")
+                        print(intersect)
+                        print("union")
+                        print(union)
+                        print(1.0*len(intersect)/1.0*len(union))
+>>>>>>> 26c155b9801e41a5aed01f48d48b5cc9521abd17
 
 
 
