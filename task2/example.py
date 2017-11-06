@@ -1,5 +1,5 @@
 import numpy as np
-m = 1000
+m = 2000
 
 
 def z(x, W, b):
@@ -45,8 +45,8 @@ def mapper(key, value):
     [n, k] = train.shape
     w = np.zeros(k)
     regular = 0.0001
-    step_size = 0.1
-    for j in range(10):
+    step_size = 0.01
+    for j in range(30):
         for i in range(n):
             x = train[i]
             if not y[i]*np.dot(w,x) > 1:
