@@ -3,24 +3,24 @@ m = 500
 
 
 def z(x, W, b):
-    z = np.sqrt(2 / m)
+    z = np.zeros(m)
     for i in range(m):
-         z = z * (np.cos(np.dot(W[i],x) +b[i]))
+        z[i] = np.sqrt(2 / m) * np.cos(np.dot(x, W[i]) + b[i])
 
     return z
 
 
 def transform(X):
     # Make sure this function works for both 1D and 2D NumPy arrays.
+    np.random.seed(0)
 
     scale = 1.0
     b = np.random.uniform(0.0, 2*np.pi, m)
     w = np.random.normal(0, scale, (m, 400))
 
     f = lambda x: z(x, w, b)
-    np.apply_along_axis(f, axis=1, arr=X)
 
-    return X
+    return np.apply_along_axis(f, axis=1, arr=X)
 
 
 def mapper(key, value):
