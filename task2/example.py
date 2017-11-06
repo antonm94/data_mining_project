@@ -1,7 +1,25 @@
 import numpy as np
+m = 400
+
+
+def z(x, W, B):
+    z = np.sqrt(2 / m)
+    for i in range(m):
+         z = z * (np.cos(W[i]*x+B[i]))
+
+    return z
+
 
 def transform(X):
     # Make sure this function works for both 1D and 2D NumPy arrays.
+
+    scale = 1.0
+    b = np.random.uniform(0.0, 2*np.pi, (m, 400))
+    w = np.random.normal(0, scale, (m, 400))
+
+    f = lambda x: z(x, w, b)
+    np.apply_along_axis(f, axis=1, arr=X)
+
     return X
 
 
@@ -21,7 +39,7 @@ def mapper(key, value):
     [n, k] = train.shape
     w = np.zeros(k)
     regular = 0.1
-    step_size = 0.01
+    step_size = 0.001
     for j in range(1):
         for i in range(n):
             x = train[i]
@@ -42,4 +60,4 @@ def reducer(key, values):
     vlenght = len(values)
     arr = np.concatenate(values).reshape([vlenght, wlenght])#maybe change them
     yield np.asarray(np.asmatrix(arr).mean(0))[0]
-   
+
