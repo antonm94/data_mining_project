@@ -1,11 +1,11 @@
 import numpy as np
-m = 400
+m = 500
 
 
-def z(x, W, B):
+def z(x, W, b):
     z = np.sqrt(2 / m)
     for i in range(m):
-         z = z * (np.cos(W[i]*x+B[i]))
+         z = z * (np.cos(np.dot(W[i],x) +b[i]))
 
     return z
 
@@ -14,7 +14,7 @@ def transform(X):
     # Make sure this function works for both 1D and 2D NumPy arrays.
 
     scale = 1.0
-    b = np.random.uniform(0.0, 2*np.pi, (m, 400))
+    b = np.random.uniform(0.0, 2*np.pi, m)
     w = np.random.normal(0, scale, (m, 400))
 
     f = lambda x: z(x, w, b)
