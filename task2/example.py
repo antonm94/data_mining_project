@@ -9,18 +9,19 @@ def mapper(key, value):
     # key: None
     n = len(value)
     k = 400
-    train = np.zeros((n, 400))
+    train = np.zeros((n, k))
     y = np.zeros(n)
-    w = np.zeros(k)
+    np.random.shuffle(value)
 
     for i in range(n):
         v = map(float, value[i].split())
         y[i] = v[0]
         train[i] = v[1:]
+    train = transform(train)
+    [n, k] = train.shape
 
-
-    print len(y)
-    print train.shape
+    print n
+    print k
 
     # value: one line of input file
     yield "key", "value"  # This is how you yield a key, value pair
