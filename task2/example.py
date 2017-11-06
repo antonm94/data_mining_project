@@ -15,4 +15,7 @@ def reducer(key, values):
     # key: key from mapper used to aggregate
     # values: list of all value for that key
     # Note that we do *not* output a (key, value) pair here.
-    yield np.random.randn(400)
+    wlenght = len(values[0])
+    vlenght = len(values)
+    arr = np.concatenate(values).reshape([vlenght, wlenght])#maybe change them
+    yield np.asarray(np.asmatrix(arr).mean(0))
