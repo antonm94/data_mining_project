@@ -1,11 +1,11 @@
 import numpy as np
-m = 500
+m = 1000
 
 
 def z(x, W, b):
     z = np.zeros(m)
     for i in range(m):
-        z[i] = np.sqrt(2 / m) * np.cos(np.dot(x, W[i]) + b[i])
+        z[i] = np.cos(np.dot(x, W[i]) + b[i])
 
     return z
 
@@ -14,13 +14,19 @@ def transform(X):
     # Make sure this function works for both 1D and 2D NumPy arrays.
     np.random.seed(0)
 
-    scale = 1.0
+    scale = 1
     b = np.random.uniform(0.0, 2*np.pi, m)
     w = np.random.normal(0, scale, (m, 400))
 
+
     f = lambda x: z(x, w, b)
 
-    return np.apply_along_axis(f, axis=1, arr=X)
+    res = np.apply_along_axis(f, axis=1, arr=X)
+
+    print res.shape
+    print X.shape
+
+    return res
 
 
 def mapper(key, value):
@@ -38,9 +44,9 @@ def mapper(key, value):
     train = transform(train)
     [n, k] = train.shape
     w = np.zeros(k)
-    regular = 0.1
-    step_size = 0.001
-    for j in range(1):
+    regular = 0.0001
+    step_size = 0.1
+    for j in range(10):
         for i in range(n):
             x = train[i]
             if not y[i]*np.dot(w,x) > 1:
