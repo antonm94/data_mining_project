@@ -7,6 +7,21 @@ def transform(X):
 
 def mapper(key, value):
     # key: None
+    n = len(value)
+    k = 400
+    train = np.zeros((n, 400))
+    y = np.zeros(n)
+    w = np.zeros(k)
+
+    for i in range(n):
+        v = map(float, value[i].split())
+        y[i] = v[0]
+        train[i] = v[1:]
+
+
+    print len(y)
+    print train.shape
+
     # value: one line of input file
     yield "key", "value"  # This is how you yield a key, value pair
 
