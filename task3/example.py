@@ -193,15 +193,3 @@ def reducer(key, values):
     cluster_centers = kmeans_coresets(X, w, N_CLUSTERS, N_INIT)
 
     yield cluster_centers
-© 2017 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
