@@ -72,7 +72,7 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-
+import time
 def chunks(iterable, size=10):
     iterator = iter(iterable)
     for first in iterator:
@@ -212,4 +212,9 @@ def main():
 
 
 if __name__ == "__main__":
+    t0 = time.time()
     main()
+    t1 = time.time()
+
+    total = t1 - t0
+    print total
