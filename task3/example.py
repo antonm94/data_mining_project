@@ -1,12 +1,12 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 import logging
-import math
+
 
 logger = logging.getLogger(__name__)
 
-N_CORESETS = 4 # Needs to be a power of 2 for correct tree
-CORESET_SIZE = 300
+N_CORESETS = 2 # Needs to be a power of 2 for correct tree
+CORESET_SIZE = 1500
 N_CLUSTERS = 200 # Specified by problem description
 
 def init_centers_d2_sampling(X, n_clusters):
@@ -57,7 +57,7 @@ def sample_coreset(X,n_clusters):
     squared_dist = np.min(dist,axis=1)**2
     cluster_membership = np.argmin(dist,axis=1)
     c_phi = np.mean(squared_dist)
-    alpha = 1
+    alpha = 5.5
     # First term of q(x)
     first_term = alpha*squared_dist/c_phi
     # Second term of q(x) (might be slow due to for loop)
@@ -168,7 +168,7 @@ def mapper(key, value):
     d = X.shape[1]
 
 
-
+    """
     # Create first row of coresets
     coresets = {}
     n_levels = int(math.log(N_CORESETS,2))
@@ -187,8 +187,9 @@ def mapper(key, value):
     c1 = coresets[n_levels].pop()[:, 1:]
     c2 = coresets[n_levels].pop()[:, 1:]
     c = np.vstack((c1, c2))
+    """
 
-    C = sample_coreset(c,CORESET_SIZE)
+    C = sample_coreset(X,CORESET_SIZE)
 
 
 
@@ -207,7 +208,7 @@ def reducer(key, values):
     logger.info('Starting reducer')
 
     w, X = values[:,0].reshape(-1, 1), values[:,1:].reshape(-1,250)
-    cluster_centers = kmeans_coresets(X, w, N_CLUSTERS, 3)
+    cluster_centers = kmeans_coresets(X, w, N_CLUSTERS, 1)
 
     logger.info('Finished reducer')
     yield cluster_centers
