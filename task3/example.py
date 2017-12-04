@@ -1,13 +1,14 @@
 import numpy as np
 from scipy.spatial.distance import cdist
-import logging
+#import logging
 
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 
-N_CORESETS = 2 # Needs to be a power of 2 for correct tree
-CORESET_SIZE = 1500
+#N_CORESETS = 2 # Needs to be a power of 2 for correct tree
+CORESET_SIZE = 1700
 N_CLUSTERS = 200 # Specified by problem description
+
 
 def init_centers_d2_sampling(X, n_clusters):
     """ D^2 sampling algorithm to find a proper cluster centers given a dataset of points """
@@ -37,6 +38,7 @@ def init_centers_d2_sampling(X, n_clusters):
         p = min_dist / min_dist.sum()
 
     return centers
+
 
 def sample_coreset(X,n_clusters):
     """
@@ -97,6 +99,7 @@ def euclidean_distance(X, Y):
         result[i,:] = euclidean_distance(Y, X[i,:])
     return result
 
+
 def kmeans_coresets(X, w, n_clusters=8, n_init=10, max_iter=300, tol=.0001):
     """ Fit the K-Means cluster algorithm with the coresets represented by the points `X` and
     weights `w` """
@@ -141,7 +144,7 @@ def kmeans_coresets(X, w, n_clusters=8, n_init=10, max_iter=300, tol=.0001):
 
             it += 1
 
-        logger.info('Finished with {} iterations!'.format(it))
+       # logger.info('Finished with {} iterations!'.format(it))
 
 
         # Compute intertia and update the best parameters
@@ -196,7 +199,7 @@ def mapper(key, value):
     # Just sample some coresets and yield them together with the weight
     # Train it in reducing phase.
 
-    logger.info('Finished mapper')
+    #logger.info('Finished mapper')
     yield 'w', C  # this is how you yield a key, value pair
 
 def reducer(key, values):
@@ -205,10 +208,10 @@ def reducer(key, values):
     # Note that we do *not* output a (key, value) pair here.
     assert key == 'w', 'Key is has not the correct value'
 
-    logger.info('Starting reducer')
+   # logger.info('Starting reducer')
 
     w, X = values[:,0].reshape(-1, 1), values[:,1:].reshape(-1,250)
     cluster_centers = kmeans_coresets(X, w, N_CLUSTERS, 1)
 
-    logger.info('Finished reducer')
+   # logger.info('Finished reducer')
     yield cluster_centers
