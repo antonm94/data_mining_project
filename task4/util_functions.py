@@ -2,7 +2,6 @@ from collections import Counter
 from math import log
 import numpy as np 
 from random import *
-from custom_errors import FileExists 
 
 def gaussianFeature(dimension, argv):
 	mean = argv['mean'] if 'mean' in argv else 0
@@ -45,13 +44,6 @@ def checkFileExists(filename):
 			return 1
 	except IOError:
 		return 0 
-
-def fileOverWriteWarning(filename, force):
-	if checkFileExists(filename):
-		if force == True:
-			print "Warning : fileOverWriteWarning %s"%(filename)
-		else:
-			raise FileExists(filename)
 
 
 def vectorize(M):
