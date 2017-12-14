@@ -6,9 +6,7 @@ import sys
 import numpy as np
 from scipy import linalg
 
-np.random.seed(23)
 
-method = 'HybridUCB'
 
 class HybridUCB:
     def __init__(self):
@@ -16,13 +14,11 @@ class HybridUCB:
 
         # upper bound coefficient
         self.alpha = 2.5 #1 + np.sqrt(np.log(2/delta)/2)
-        r1 = .5
-        r0 = -15
-        self.r = (r0, r1)
+
         # dimension of user features = d
-        self.d = 5
+        self.d = 6
         # dimension of article features = k
-        self.k = self.d*self.d
+        self.k = self.d*d
         # A0 : matrix to compute hybrid part, k*k
         self.A0 = np.identity(self.k)
         self.A0I = np.identity(self.k)
@@ -62,30 +58,30 @@ class HybridUCB:
     def set_articles(self, art):
         # init collection of matrix/vector Aa, Ba, ba
         i = 0
-        art_len = len(art)
-        self.article_features = np.zeros((art_len, 1, self.d))
-        self.Aa = np.zeros((art_len, self.d, self.d))
-        self.AaI = np.zeros((art_len, self.d, self.d))
-        self.Ba = np.zeros((art_len, self.d, self.k))
-        self.BaT = np.zeros((art_len, self.k, self.d))
-        self.ba = np.zeros((art_len, self.d, 1))
-        self.AaIba = np.zeros((art_len, self.d, 1))
-        self.AaIBa = np.zeros((art_len, self.d, self.k))
-        self.BaTAaI = np.zeros((art_len, self.k, self.d))
-        self.theta = np.zeros((art_len, self.d, 1))
-        for key in art:
-            self.index[key] = i
-            self.article_features[i] = art[key][1:]
-            self.Aa[i] = np.identity(self.d)
-            self.AaI[i] = np.identity(self.d)
-            self.Ba[i] = np.zeros((self.d, self.k))
-            self.BaT[i] = np.zeros((self.k, self.d))
-            self.ba[i] = np.zeros((self.d, 1))
-            self.AaIba[i] = np.zeros((self.d, 1))
-            self.AaIBa[i] = np.zeros((self.d, self.k))
-            self.BaTAaI[i] = np.zeros((self.k, self.d))
-            self.theta[i] = np.zeros((self.d, 1))
-            i += 1
+        self.k = len(art)
+        self.article_features = np.zeros((self.k, self.d))
+        # self.Aa = np.zeros((art_len, self.d, self.d))
+        # self.AaI = np.zeros((art_len, self.d, self.d))
+        # self.Ba = np.zeros((art_len, self.d, self.k))
+        # self.BaT = np.zeros((art_len, self.k, self.d))
+        # self.ba = np.zeros((art_len, self.d, 1))
+        # self.AaIba = np.zeros((art_len, self.d, 1))
+        # self.AaIBa = np.zeros((art_len, self.d, self.k))
+        # self.BaTAaI = np.zeros((art_len, self.k, self.d))
+        # self.theta = np.zeros((art_len, self.d, 1))
+        # for key in art:
+        #     self.index[key] = i
+        #     self.article_features[i] = art[key][:]
+        #     self.Aa[i] = np.identity(self.d)
+        #     self.AaI[i] = np.identity(self.d)
+        #     self.Ba[i] = np.zeros((self.d, self.k))
+        #     self.BaT[i] = np.zeros((self.k, self.d))
+        #     self.ba[i] = np.zeros((self.d, 1))
+        #     self.AaIba[i] = np.zeros((self.d, 1))
+        #     self.AaIBa[i] = np.zeros((self.d, self.k))
+        #     self.BaTAaI[i] = np.zeros((self.k, self.d))
+        #     self.theta[i] = np.zeros((self.d, 1))
+        #     i += 1
 
 
     # This function will be called by the evaluator.
@@ -120,7 +116,7 @@ class HybridUCB:
     def recommend(self, timestamp, user_features, articles):
         article_len = len(articles)
         # za : feature of current user/article combination, k*1
-        self.xaT = np.array([user_features[1:]])
+        self.xaT = np.array([user_features[:]])
         self.xa = np.transpose(self.xaT)
         # recommend using hybrid ucb
         # fast vectorized for loops
@@ -129,7 +125,7 @@ class HybridUCB:
 
         article_features_tmp = self.article_features[index]
 
-        zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features[1:]).reshape(article_len, 1, self.k)
+        zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features[:]).reshape(article_len, 1, self.k)
         za_tmp = np.transpose(zaT_tmp, (0,2,1))#np.transpose(zaT_tmp,(0,2,1))
 
         #np.dot(self.A0I, np.dot(BaTAaI_tmp, self.xa)) (20, 36, 1)
@@ -161,12 +157,3 @@ class HybridUCB:
         return articles[max_index]
 
 
-
-algorithms = {
-    'HybridUCB': HybridUCB()
-}
-
-algorithm = algorithms[method]
-set_articles = algorithm.set_articles
-update = algorithm.update
-recommend = algorithm.recommend
