@@ -36,6 +36,7 @@ logging.basicConfig(level=logging.DEBUG)
 def process_line(policy, logline):
     chosen = int(logline.pop(7))
     reward = int(logline.pop(7))
+   # print reward
     time = int(logline[0])
     user_features = [float(x) for x in logline[1:7]]
     articles = [int(x) for x in logline[7:]]

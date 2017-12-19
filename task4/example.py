@@ -1,12 +1,8 @@
 #!/usr/bin/env python2.7
 
-import math
-import sys
 
 import numpy as np
-from scipy import linalg
-
-np.random.seed(23)
+from numpy import linalg
 
 method = 'HybridUCB'
 
@@ -15,12 +11,12 @@ class HybridUCB:
         self.article_features = {}
 
         # upper bound coefficient
-        self.alpha = 2.5 #1 + np.sqrt(np.log(2/delta)/2)
-        r1 = .5
-        r0 = -15
+        self.alpha = 3 #1 + np.sqrt(np.log(2/delta)/2)
+        r1 = 20.
+        r0 = -0.5
         self.r = (r0, r1)
         # dimension of user features = d
-        self.d = 5
+        self.d = 6
         # dimension of article features = k
         self.k = self.d*self.d
         # A0 : matrix to compute hybrid part, k*k
@@ -75,7 +71,7 @@ class HybridUCB:
         self.theta = np.zeros((art_len, self.d, 1))
         for key in art:
             self.index[key] = i
-            self.article_features[i] = art[key][1:]
+            self.article_features[i] = art[key]
             self.Aa[i] = np.identity(self.d)
             self.AaI[i] = np.identity(self.d)
             self.Ba[i] = np.zeros((self.d, self.k))
@@ -91,36 +87,37 @@ class HybridUCB:
     # This function will be called by the evaluator.
     # Check task description for details.
     def update(self, reward):
+        #print reward
         if reward == -1:
-            pass
+             pass
+        else:
+            r = self.r[reward]
+            self.A0 += np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
+            self.b0 += np.dot(self.BaTAaI[self.a_max], self.ba[self.a_max])
+            self.Aa[self.a_max] += np.dot(self.xa, self.xaT)
+            self.AaI[self.a_max] = linalg.inv(self.Aa[self.a_max])
+            self.Ba[self.a_max] += np.dot(self.xa, self.zT)
+            self.BaT[self.a_max] = np.transpose(self.Ba[self.a_max])
+            self.ba[self.a_max] += r * self.xa
+            self.AaIba[self.a_max] = np.dot(self.AaI[self.a_max], self.ba[self.a_max])
+            self.AaIBa[self.a_max] = np.dot(self.AaI[self.a_max], self.Ba[self.a_max])
+            self.BaTAaI[self.a_max] = np.dot(self.BaT[self.a_max], self.AaI[self.a_max])
 
-        r = self.r[reward]
-
-        self.A0 += np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
-        self.b0 += np.dot(self.BaTAaI[self.a_max], self.ba[self.a_max])
-        self.Aa[self.a_max] += np.dot(self.xa, self.xaT)
-        self.AaI[self.a_max] = linalg.inv(self.Aa[self.a_max])
-        self.Ba[self.a_max] += np.dot(self.xa, self.zT)
-        self.BaT[self.a_max] = np.transpose(self.Ba[self.a_max])
-        self.ba[self.a_max] += r * self.xa
-        self.AaIba[self.a_max] = np.dot(self.AaI[self.a_max], self.ba[self.a_max])
-        self.AaIBa[self.a_max] = np.dot(self.AaI[self.a_max], self.Ba[self.a_max])
-        self.BaTAaI[self.a_max] = np.dot(self.BaT[self.a_max], self.AaI[self.a_max])
-
-        self.A0 += np.dot(self.z, self.zT) - np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
-        self.b0 += r * self.z - np.dot(self.BaT[self.a_max], np.dot(self.AaI[self.a_max], self.ba[self.a_max]))
-        self.A0I = linalg.inv(self.A0)
-        self.beta = np.dot(self.A0I, self.b0)
-        self.theta = self.AaIba - np.dot(self.AaIBa, self.beta)#self.AaI[article].dot(self.ba[article] - self.Ba[article].dot(self.beta))
+            self.A0 += np.dot(self.z, self.zT) - np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
+            self.b0 += r * self.z - np.dot(self.BaT[self.a_max], np.dot(self.AaI[self.a_max], self.ba[self.a_max]))
+            self.A0I = linalg.inv(self.A0)
+            self.beta = np.dot(self.A0I, self.b0)
+            self.theta = self.AaIba - np.dot(self.AaIBa, self.beta)#self.AaI[article].dot(self.ba[article] - self.Ba[article].dot(self.beta))
 
 
     # This function will be called by the evaluator.
     # Check task description for details.
 	# Use vectorized code to increase speed
     def recommend(self, timestamp, user_features, articles):
+
         article_len = len(articles)
         # za : feature of current user/article combination, k*1
-        self.xaT = np.array([user_features[1:]])
+        self.xaT = np.array([user_features])
         self.xa = np.transpose(self.xaT)
         # recommend using hybrid ucb
         # fast vectorized for loops
@@ -129,7 +126,7 @@ class HybridUCB:
 
         article_features_tmp = self.article_features[index]
 
-        zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features[1:]).reshape(article_len, 1, self.k)
+        zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features).reshape(article_len, 1, self.k)
         za_tmp = np.transpose(zaT_tmp, (0,2,1))#np.transpose(zaT_tmp,(0,2,1))
 
         #np.dot(self.A0I, np.dot(BaTAaI_tmp, self.xa)) (20, 36, 1)
@@ -157,6 +154,7 @@ class HybridUCB:
         # article index with largest UCB
         # global a_max, entries
         self.a_max = art_max
+       # return np.random.choice(articles)
         return articles[max_index]
 
 
