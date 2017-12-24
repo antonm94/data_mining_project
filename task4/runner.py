@@ -29,6 +29,7 @@ import numpy as np
 import resource
 import signal
 import sys
+import time
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -44,6 +45,7 @@ def process_line(policy, logline):
 
 
 def evaluate(policy, input_generator):
+    t1 = time.time()
     score = 0.0
     impressions = 0.0
     n_lines = 0.0
@@ -57,6 +59,8 @@ def evaluate(policy, input_generator):
             impressions += 1
         else:
             policy.update(-1)
+    t2 = time.time()
+    print "log processing: "+str(t2-t1)+" s."
     if impressions < 1:
         logger.info("No impressions were made.")
         return 0.0
@@ -77,9 +81,12 @@ def run(source, log_file, articles_file):
     policy = import_from_file(source)
     articles_np = np.loadtxt(articles_file)
     articles = {}
+    t0 = time.time()
     for art in articles_np:
         articles[int(art[0])] = [float(x) for x in art[1:]]
     policy.set_articles(articles)
+    t1 = time.time()
+    print "Article loading: "+str(t1-t0)+" s."
     with io.open(log_file, 'rb', buffering=1024*1024*512) as inf:
         return evaluate(policy, inf)
     

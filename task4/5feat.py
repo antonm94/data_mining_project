@@ -1,33 +1,23 @@
 #!/usr/bin/env python2.7
 
-
 import numpy as np
 from numpy import linalg
 
 method = 'HybridUCB'
-combcut = 20
-artcut = 0
-usercut = 0
 
 class HybridUCB:
     def __init__(self):
         self.article_features = {}
 
         # upper bound coefficient
-        self.alpha = 3 #1 + np.sqrt(np.log(2/delta)/2)
+        self.alpha = 2 #1 + np.sqrt(np.log(2/delta)/2)
         r1 = 20.
         r0 = -0.5
         self.r = (r0, r1)
         # dimension of user features = d
-        self.d = 6
+        self.d = 5
         # dimension of article features = k
-        self.k = self.d*self.d-combcut
-	print self.k
-	#select subset of features
-	ind = np.arange(self.d*self.d)
-	np.random.shuffle(ind)
-	self.scols = ind[:self.k]
-	print self.scols
+        self.k = self.d*self.d
         # A0 : matrix to compute hybrid part, k*k
         self.A0 = np.identity(self.k)
         self.A0I = np.identity(self.k)
@@ -80,7 +70,7 @@ class HybridUCB:
         self.theta = np.zeros((art_len, self.d, 1))
         for key in art:
             self.index[key] = i
-            self.article_features[i] = art[key]
+            self.article_features[i] = art[key][1:]	
             self.Aa[i] = np.identity(self.d)
             self.AaI[i] = np.identity(self.d)
             self.Ba[i] = np.zeros((self.d, self.k))
@@ -114,8 +104,14 @@ class HybridUCB:
 
             self.A0 += np.dot(self.z, self.zT) - np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
             self.b0 += r * self.z - np.dot(self.BaT[self.a_max], np.dot(self.AaI[self.a_max], self.ba[self.a_max]))
+            #change to LSG?
+
             self.A0I = linalg.inv(self.A0)
             self.beta = np.dot(self.A0I, self.b0)
+            #self.beta = linalg.solve(self.A0, self.b0)
+            # if not np.array_equal(beta1, self.beta.all):
+            #     print
+
             self.theta = self.AaIba - np.dot(self.AaIBa, self.beta)#self.AaI[article].dot(self.ba[article] - self.Ba[article].dot(self.beta))
 
 
@@ -126,7 +122,8 @@ class HybridUCB:
 
         article_len = len(articles)
         # za : feature of current user/article combination, k*1
-        self.xaT = np.array([user_features])
+	#print len(user_features[:-1])
+        self.xaT = np.array([user_features[1:]])
         self.xa = np.transpose(self.xaT)
         # recommend using hybrid ucb
         # fast vectorized for loops
@@ -135,15 +132,8 @@ class HybridUCB:
 
         article_features_tmp = self.article_features[index]
 
-        #zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features).reshape(article_len, 1, self.k)
-	#use different features
-	#print "test"
-	#print article_features_tmp.shape
-	#print self.scols
-	zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features).reshape(article_len, 1, self.d*self.d)[:,:,self.scols]
-	#print zaT_tmp.shape        
-	za_tmp = np.transpose(zaT_tmp, (0,2,1))#np.transpose(zaT_tmp,(0,2,1))
-
+        zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features[1:]).reshape(article_len, 1, self.k)
+        za_tmp = np.transpose(zaT_tmp, (0,2,1))#np.transpose(zaT_tmp,(0,2,1))
 
         #np.dot(self.A0I, np.dot(BaTAaI_tmp, self.xa)) (20, 36, 1)
         A0IBaTAaIxa_tmp = np.transpose(np.dot(np.transpose(np.dot(self.BaTAaI[index], self.xa), (0,2,1)), np.transpose(self.A0I)), (0,2,1))
@@ -158,7 +148,7 @@ class HybridUCB:
         AaIxa_add_AaIBaA0IBaTAaIxa_tmp = np.dot(self.AaI[index], self.xa) + np.sum(np.transpose(self.AaIBa[index], (0,2,1)).reshape(article_len, self.k,self.d,1)*A0IBaTAaIxa_tmp.reshape(article_len,self.k,1,1),-3)
         sa_2_tmp = np.transpose(np.dot(np.transpose(AaIxa_add_AaIBaA0IBaTAaIxa_tmp,(0,2,1)),self.xa),(0,2,1))
         sa_tmp = sa_1_tmp + sa_2_tmp
-        # np.dot(self.xaT, self.theta[article])
+        # np.dot(self.xaT, self.thea[article])
         xaTtheta_tmp = np.transpose(np.dot(np.transpose(self.theta[index],(0,2,1)),self.xa),(0,2,1))
 
         max_index = np.argmax(np.dot(zaT_tmp, self.beta) + xaTtheta_tmp + self.alpha * np.sqrt(sa_tmp))
