@@ -26,6 +26,8 @@ import io
 import imp
 import logging
 import numpy as np
+import time
+
 import resource
 import signal
 import sys
@@ -92,6 +94,8 @@ def run(source, log_file, articles_file):
     
 
 if __name__ == "__main__":
+    s = time.time()
+
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -107,3 +111,5 @@ if __name__ == "__main__":
     with open(args.source_file, "r") as fin:
         source = fin.read()
     run(source, args.log_file, args.articles_file)
+    print time.time() - s
+
