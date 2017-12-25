@@ -103,14 +103,16 @@ class HybridUCB:
             r = self.r[reward]
             self.A0 += np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
             self.b0 += np.dot(self.BaTAaI[self.a_max], self.ba[self.a_max])
+
             self.Aa[self.a_max] += np.dot(self.xa, self.xaT)
-            print self.Aa[self.a_max]
-            self.AaI[self.a_max] = self.AaI[self.a_max] - np.divide(
-                self.AaI[self.a_max] * self.xa * self.xaT * self.AaI[self.a_max],
-                (1 + self.xaT * self.AaI[self.a_max] * self.xa))
+
+            B = np.divide(
+                np.dot(np.dot(self.AaI[self.a_max], np.dot(self.xa, self.xaT)), self.AaI[self.a_max]),
+                (1 + np.dot(np.dot(self.xaT,self.AaI[self.a_max]),self.xa)))
+
+            self.AaI[self.a_max] = self.AaI[self.a_max] - B
             A = linalg.inv(self.Aa[self.a_max])
-            print self.AaI[self.a_max]
-            print A
+
 
             self.Ba[self.a_max] += np.dot(self.xa, self.zT)
             self.BaT[self.a_max] = np.transpose(self.Ba[self.a_max])
