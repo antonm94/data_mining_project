@@ -1,12 +1,14 @@
 #!/usr/bin/env python2.7
 
+
 import numpy as np
 from numpy import linalg
+
 method = 'HybridUCB'
 combcut = 20
 artcut = 0
 usercut = 0
-import time
+
 class HybridUCB:
     def __init__(self):
         self.article_features = {}
@@ -63,7 +65,6 @@ class HybridUCB:
     # Evaluator will call this function and pass the article features.
     # Check evaluator.py description for details.
     def set_articles(self, art):
-       # s = time.time()
         # init collection of matrix/vector Aa, Ba, ba
         i = 0
         art_len = len(art)
@@ -90,12 +91,11 @@ class HybridUCB:
             self.BaTAaI[i] = np.zeros((self.k, self.d))
             self.theta[i] = np.zeros((self.d, 1))
             i += 1
-       # print 'set articles: {}'.format(time.time() -s)
+
 
     # This function will be called by the evaluator.
     # Check task description for details.
     def update(self, reward):
-      #  s = time.time()
         #print reward
         if reward == -1:
              pass
@@ -106,11 +106,12 @@ class HybridUCB:
             self.Aa[self.a_max] += np.dot(self.xa, self.xaT)
             print self.Aa[self.a_max]
             self.AaI[self.a_max] = self.AaI[self.a_max] - np.divide(
-                self.AaI[self.a_max] * self.xa*self.xaT * self.AaI[self.a_max],
+                self.AaI[self.a_max] * self.xa * self.xaT * self.AaI[self.a_max],
                 (1 + self.xaT * self.AaI[self.a_max] * self.xa))
             A = linalg.inv(self.Aa[self.a_max])
             print self.AaI[self.a_max]
             print A
+
             self.Ba[self.a_max] += np.dot(self.xa, self.zT)
             self.BaT[self.a_max] = np.transpose(self.Ba[self.a_max])
             self.ba[self.a_max] += r * self.xa
@@ -120,23 +121,15 @@ class HybridUCB:
 
             self.A0 += np.dot(self.z, self.zT) - np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
             self.b0 += r * self.z - np.dot(self.BaT[self.a_max], np.dot(self.AaI[self.a_max], self.ba[self.a_max]))
-            #change to LSG?
-
             self.A0I = linalg.inv(self.A0)
             self.beta = np.dot(self.A0I, self.b0)
-            #self.beta = linalg.solve(self.A0, self.b0)
-            # if not np.array_equal(beta1, self.beta.all):
-            #     print
-
             self.theta = self.AaIba - np.dot(self.AaIBa, self.beta)#self.AaI[article].dot(self.ba[article] - self.Ba[article].dot(self.beta))
 
-        #print 'updating: {}'.format(time.time() -s)
 
-            # This function will be called by the evaluator.
+    # This function will be called by the evaluator.
     # Check task description for details.
 	# Use vectorized code to increase speed
     def recommend(self, timestamp, user_features, articles):
-        #s = time.time()
 
         article_len = len(articles)
         # za : feature of current user/article combination, k*1
@@ -155,7 +148,7 @@ class HybridUCB:
 	#print article_features_tmp.shape
 	#print self.scols
 	zaT_tmp = np.einsum('i,j', article_features_tmp.reshape(-1), user_features).reshape(article_len, 1, self.d*self.d)[:,:,self.scols]
-	#print zaT_tmp.shape        
+	#print zaT_tmp.shape
 	za_tmp = np.transpose(zaT_tmp, (0,2,1))#np.transpose(zaT_tmp,(0,2,1))
 
 
@@ -172,7 +165,7 @@ class HybridUCB:
         AaIxa_add_AaIBaA0IBaTAaIxa_tmp = np.dot(self.AaI[index], self.xa) + np.sum(np.transpose(self.AaIBa[index], (0,2,1)).reshape(article_len, self.k,self.d,1)*A0IBaTAaIxa_tmp.reshape(article_len,self.k,1,1),-3)
         sa_2_tmp = np.transpose(np.dot(np.transpose(AaIxa_add_AaIBaA0IBaTAaIxa_tmp,(0,2,1)),self.xa),(0,2,1))
         sa_tmp = sa_1_tmp + sa_2_tmp
-        # np.dot(self.xaT, self.thea[article])
+        # np.dot(self.xaT, self.theta[article])
         xaTtheta_tmp = np.transpose(np.dot(np.transpose(self.theta[index],(0,2,1)),self.xa),(0,2,1))
 
         max_index = np.argmax(np.dot(zaT_tmp, self.beta) + xaTtheta_tmp + self.alpha * np.sqrt(sa_tmp))
@@ -185,8 +178,6 @@ class HybridUCB:
         # global a_max, entries
         self.a_max = art_max
        # return np.random.choice(articles)
-       # print 'recommending: {}'.format(time.time() -s)
-
         return articles[max_index]
 
 
