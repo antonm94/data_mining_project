@@ -5,7 +5,7 @@ import numpy as np
 from numpy import linalg
 
 method = 'HybridUCB'
-combcut = 20
+combcut = 0
 artcut = 0
 usercut = 0
 
@@ -111,7 +111,7 @@ class HybridUCB:
                 (1 + np.dot(np.dot(self.xaT,self.AaI[self.a_max]),self.xa)))
 
             self.AaI[self.a_max] = self.AaI[self.a_max] - B
-            A = linalg.inv(self.Aa[self.a_max])
+            #A = linalg.inv(self.Aa[self.a_max])
 
 
             self.Ba[self.a_max] += np.dot(self.xa, self.zT)

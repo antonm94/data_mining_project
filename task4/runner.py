@@ -46,21 +46,30 @@ def process_line(policy, logline):
 
 def evaluate(policy, input_generator):
     t1 = time.time()
+    updateTime = 0
+    recTime = 0
     score = 0.0
     impressions = 0.0
     n_lines = 0.0
     for line in input_generator:
         n_lines += 1
+        recTime = recTime - time.time()
         reward, chosen, calculated = process_line(
             policy, line.strip().split())
+        recTime = recTime + time.time()
         if calculated == chosen:
+            updateTime = updateTime - time.time()
             policy.update(reward)
+            updateTime = updateTime + time.time()
             score += reward
             impressions += 1
         else:
             policy.update(-1)
     t2 = time.time()
     print "log processing: "+str(t2-t1)+" s."
+    print "recommend time: " +str(recTime)+" s."
+    print "update time: " +str(updateTime)+" s."
+    #print "test time: " +str(policy.ttime)+" s."
     if impressions < 1:
         logger.info("No impressions were made.")
         return 0.0
