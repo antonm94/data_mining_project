@@ -2,8 +2,9 @@
 
 import numpy as np
 from numpy import linalg
-method = 'HybridUCB'
 import time
+method = 'HybridUCB'
+s = 0
 class HybridUCB:
     def __init__(self):
         self.article_features = {}
@@ -54,7 +55,6 @@ class HybridUCB:
     # Evaluator will call this function and pass the article features.
     # Check evaluator.py description for details.
     def set_articles(self, art):
-       # s = time.time()
         # init collection of matrix/vector Aa, Ba, ba
         i = 0
         art_len = len(art)
@@ -81,12 +81,12 @@ class HybridUCB:
             self.BaTAaI[i] = np.zeros((self.k, self.d))
             self.theta[i] = np.zeros((self.d, 1))
             i += 1
-       # print 'set articles: {}'.format(time.time() -s)
+
 
     # This function will be called by the evaluator.
     # Check task description for details.
     def update(self, reward):
-      #  s = time.time()
+        global s
         #print reward
         if reward == -1:
              pass
@@ -94,14 +94,13 @@ class HybridUCB:
             r = self.r[reward]
             self.A0 += np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
             self.b0 += np.dot(self.BaTAaI[self.a_max], self.ba[self.a_max])
-            self.Aa[self.a_max] += np.dot(self.xa, self.xaT)
-            print self.Aa[self.a_max]
+            xa_xaT = np.dot(self.xa, self.xaT)
+            self.Aa[self.a_max] += xa_xaT
+
+
             self.AaI[self.a_max] = self.AaI[self.a_max] - np.divide(
-                self.AaI[self.a_max] * self.xa*self.xaT * self.AaI[self.a_max],
-                (1 + self.xaT * self.AaI[self.a_max] * self.xa))
-            A = linalg.inv(self.Aa[self.a_max])
-            print self.AaI[self.a_max]
-            print A
+                np.dot(np.dot(self.AaI[self.a_max], xa_xaT), self.AaI[self.a_max]),
+                (1 + np.dot(np.dot(self.xaT, self.AaI[self.a_max]), self.xa)))
             self.Ba[self.a_max] += np.dot(self.xa, self.zT)
             self.BaT[self.a_max] = np.transpose(self.Ba[self.a_max])
             self.ba[self.a_max] += r * self.xa
@@ -109,25 +108,29 @@ class HybridUCB:
             self.AaIBa[self.a_max] = np.dot(self.AaI[self.a_max], self.Ba[self.a_max])
             self.BaTAaI[self.a_max] = np.dot(self.BaT[self.a_max], self.AaI[self.a_max])
 
-            self.A0 += np.dot(self.z, self.zT) - np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
+            z_zT = np.dot(self.z, self.zT)
+            self.A0 += z_zT- np.dot(self.BaTAaI[self.a_max], self.Ba[self.a_max])
             self.b0 += r * self.z - np.dot(self.BaT[self.a_max], np.dot(self.AaI[self.a_max], self.ba[self.a_max]))
             #change to LSG?
 
+            # self.A0I = self.A0I - np.divide(
+            #     np.dot(np.dot(self.A0I, z_zT), self.A0I),
+            #     (1 + np.dot(np.dot(self.zT, self.A0I), self.z)))
+          # a = time.time()
             self.A0I = linalg.inv(self.A0)
+          #  s = s + (time.time() - a)
+          #  print s
             self.beta = np.dot(self.A0I, self.b0)
-            #self.beta = linalg.solve(self.A0, self.b0)
             # if not np.array_equal(beta1, self.beta.all):
             #     print
 
             self.theta = self.AaIba - np.dot(self.AaIBa, self.beta)#self.AaI[article].dot(self.ba[article] - self.Ba[article].dot(self.beta))
 
-        #print 'updating: {}'.format(time.time() -s)
 
-            # This function will be called by the evaluator.
+    # This function will be called by the evaluator.
     # Check task description for details.
 	# Use vectorized code to increase speed
     def recommend(self, timestamp, user_features, articles):
-        #s = time.time()
 
         article_len = len(articles)
         # za : feature of current user/article combination, k*1
@@ -145,8 +148,11 @@ class HybridUCB:
 
         #np.dot(self.A0I, np.dot(BaTAaI_tmp, self.xa)) (20, 36, 1)
         A0IBaTAaIxa_tmp = np.transpose(np.dot(np.transpose(np.dot(self.BaTAaI[index], self.xa), (0,2,1)), np.transpose(self.A0I)), (0,2,1))
+        #A0IBaTAaIxa_tmp = np.linalg.solve(self.A0, np.dot(self.BaTAaI[index], self.xa))
 
         A0Iza_tmp = np.transpose(np.dot(zaT_tmp, np.transpose(self.A0I)), (0,2,1)) # (20, 36, 1)
+        #A0Iza_tmp = np.linalg.solve(self.A0, za_tmp)
+
         A0Iza_diff_2A0IBaTAaIxa_tmp = A0Iza_tmp - 2*A0IBaTAaIxa_tmp
 
         # np.dot(zaT_tmp, A0Iza_diff_2A0IBaTAaIxa_tmp), (20, 1, 1)
@@ -169,8 +175,6 @@ class HybridUCB:
         # global a_max, entries
         self.a_max = art_max
        # return np.random.choice(articles)
-       # print 'recommending: {}'.format(time.time() -s)
-
         return articles[max_index]
 
 
